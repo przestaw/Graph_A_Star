@@ -2,6 +2,7 @@ import xml.etree.cElementTree as ElementTree
 import xml.dom.minidom as minidom
 import math
 import sys
+import distances
 
 class Node:
     def __init__(self, id, corX, corY):
@@ -30,11 +31,6 @@ class NetworkStructure:
                 ret.append(node)
         return ret
 
-def calcDistance(x1, y1, x2, y2):
-    disX = abs(x1-x2)
-    disY = abs(y1-y2)
-    return math.sqrt((disX*disX)+(disY*disY))
-
 def processGraph(inputFile, outputFile):
     MyNetwork = NetworkStructure()
     try:
@@ -50,8 +46,8 @@ def processGraph(inputFile, outputFile):
 
             source = MyNetwork.getNode(sourceText).pop()
             target = MyNetwork.getNode(targetText).pop()
-            dist = calcDistance(source.x, source.y, target.x, target.y)
-
+            dist = distances.road_distance((source.y, source.x), (target.y, target.x))
+            print(dist)
             MyNetwork.addLink(Link(sourceText , targetText, dist))
 
         exportXML(MyNetwork, outputFile)
@@ -77,9 +73,11 @@ def exportXML(networkStructure, filename):
         distance = ElementTree.SubElement(linkEl, "distance").text = str(link.distance)
 
     tree = ElementTree.ElementTree(root)
-
     #convert ET to dom
-    dom = minidom.parseString(ElementTree.tostring(root, xml_declaration=True))
+    try:
+        dom = minidom.parseString(ElementTree.tostring(root, xml_declaration=True))
+    except TypeError:
+        dom = minidom.parseString(ElementTree.tostring(root, method='xml'))
     try:
         file = open(filename, mode='x')
         dom.writexml(file, indent='', addindent='  ', newl='\n', encoding="utf-8")

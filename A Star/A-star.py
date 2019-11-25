@@ -2,6 +2,8 @@ import xml.etree.cElementTree as ElementTree
 import xml.dom.minidom as minidom
 import math
 import sys
+sys.path.append('..')
+import distances
 import time
 from Queue import Queue
 from Queue import PriorityQueue
@@ -28,14 +30,7 @@ def loadGraph(inputFile):
         print("Input file not found")
 
 def heuristic(curr, goal):
-    x1 = curr.x
-    y1 = curr.y
-    x2 = goal.x
-    y2 = goal.y
-
-    disX = abs(x1-x2)
-    disY = abs(y1-y2)
-    return math.sqrt((disX*disX)+(disY*disY))/2
+    return distances.haversine((curr.y, curr.x), (goal.y, goal.x))
 
 def reconstructPath(came_from, start, goal):
     current = goal
