@@ -2,6 +2,7 @@ import xml.etree.cElementTree as ElementTree
 import xml.dom.minidom as minidom
 import math
 import sys
+import time
 from Queue import Queue
 from Queue import PriorityQueue
 from Graph import *
@@ -60,7 +61,7 @@ def aStarSearch(network, start, goal):
         for iter in network.neighbors(current.id):
             next = network.getNode(iter.id)
             new_cost = cost_so_far[current.id] + iter.distance
-            if next not in cost_so_far or new_cost < cost_so_far[next.id]:
+            if next.id not in cost_so_far or new_cost < cost_so_far[next.id]:
                 cost_so_far[next.id] = new_cost
                 priority = new_cost + heuristic(next, goal)
                 frontier.put(next, priority)
@@ -69,9 +70,20 @@ def aStarSearch(network, start, goal):
     return {}
 
 if __name__ == "__main__":
-    MyNetwork = loadGraph(sys.argv[1])
+    if len(sys.argv) < 4:
+        print("Provide all arguments : <input file> <source> <target>")
+    elif sys.argv[2] == sys.argv[3]:
+        print("Source must be diffrent from target")
+    else:
+        source = sys.argv[2]
+        target = sys.argv[3]
 
-    result = aStarSearch(MyNetwork, MyNetwork.getNode("Gdansk"), MyNetwork.getNode("Poznan"))
-    print(result)
-    path = reconstructPath(result, MyNetwork.getNode("Gdansk").id, MyNetwork.getNode("Poznan").id)
-    print(path)
+        MyNetwork = loadGraph(sys.argv[1])
+        try:
+            startTime = time.perf_counter()
+            result = aStarSearch(MyNetwork, MyNetwork.getNode(source), MyNetwork.getNode(target))
+            endTime = time.perf_counter()
+            path = reconstructPath(result, source, target)
+            print(path, "\nTime : ", endTime-startTime, " sec")
+        except KeyError as error:
+            print("Entered bad city name :", error.args[0], "\nPlease provide correct name")
