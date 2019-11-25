@@ -34,3 +34,5 @@ class Network:
         return self.Nodes[nodeId]
     def neighbors(self, node):
         return self.Nodes[node].adjacent
+    def empty(self):
+        return len(self.Nodes) == 0

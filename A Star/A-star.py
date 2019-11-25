@@ -1,3 +1,5 @@
+from Graph import *
+from Queue import *
 import xml.etree.cElementTree as ElementTree
 import xml.dom.minidom as minidom
 import math
@@ -5,9 +7,7 @@ import sys
 sys.path.append('..')
 import distances
 import time
-from Queue import Queue
-from Queue import PriorityQueue
-from Graph import *
+
 
 def loadGraph(inputFile):
     MyNetwork = Network()
@@ -28,6 +28,7 @@ def loadGraph(inputFile):
         return MyNetwork
     except FileNotFoundError:
         print("Input file not found")
+        return MyNetwork
 
 def heuristic(curr, goal):
     return distances.haversine((curr.y, curr.x), (goal.y, goal.x))
@@ -47,11 +48,13 @@ def aStarSearch(network, start, goal):
     came_from = {start.id: None}
     cost_so_far = {start.id: 0}
 
+    startTime = time.perf_counter()
+
     while not frontier.empty():
         current = frontier.get()
 
         if current == goal:
-            return came_from
+            break;
 
         for iter in network.neighbors(current.id):
             next = network.getNode(iter.id)
@@ -62,7 +65,8 @@ def aStarSearch(network, start, goal):
                 frontier.put(next, priority)
                 came_from[next.id] = current.id
 
-    return {}
+    endTime = time.perf_counter()
+    return came_from, cost_so_far[goal.id], endTime - startTime
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
@@ -74,11 +78,10 @@ if __name__ == "__main__":
         target = sys.argv[3]
 
         MyNetwork = loadGraph(sys.argv[1])
-        try:
-            startTime = time.perf_counter()
-            result = aStarSearch(MyNetwork, MyNetwork.getNode(source), MyNetwork.getNode(target))
-            endTime = time.perf_counter()
-            path = reconstructPath(result, source, target)
-            print(path, "\nTime : ", endTime-startTime, " sec")
-        except KeyError as error:
-            print("Entered bad city name :", error.args[0], "\nPlease provide correct name")
+        if not MyNetwork.empty():
+            try:
+                result, distance, time = aStarSearch(MyNetwork, MyNetwork.getNode(source), MyNetwork.getNode(target))
+                path = reconstructPath(result, source, target)
+                print(path, "\nDistance : ", distance, "\nTime : ", time, " sec")
+            except KeyError as error:
+                print("Entered bad city name :", error.args[0], "\nPlease provide correct name")
