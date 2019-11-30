@@ -1,6 +1,8 @@
 import xml.etree.cElementTree as ElementTree
 import sys
 import time
+from random import randint
+
 sys.path.append('..')
 import distances
 from copy import copy
@@ -121,26 +123,45 @@ def path_distance(network, path):
     return ret + str(total)
 
 
+def generate_test_data(network, amount):
+    names = []
+    for i in network.Nodes:
+        names.append(i)
+    ret = []
+    for i in range(amount):
+        s = randint(0, len(names)-1)
+        f = s
+        while s == f:
+            f = randint(0, len(names)-1)
+        ret.append((network.Nodes[names[s]], network.Nodes[names[f]]))
+    return ret
+
+
 if __name__ == "__main__":
     search_mode = "2"
-    if len(sys.argv) == 5:  # user selected search mode
-        search_mode = sys.argv[4]
-    if len(sys.argv) < 4:
-        print("Provide all arguments : <input file> <source> <target> <mode>(optional)\nModes:\n\t"
-              "1 - brute force\n\t2 - A* (default)\n\t3 - Dijkstra\n\t4 - A* and Dijkstra \n\t5 - all at once")
-    elif sys.argv[2] == sys.argv[3]:
-        print("Source must be diffrent from target")
+    num_tests = None
+    if len(sys.argv) < 5 and not (len(sys.argv) == 4):
+        print("Provide all arguments : <input file> <mode> <source> <target>\nModes:\n\t"
+              "1 - brute force\n\t2 - A* (default)\n\t3 - Dijkstra\n\t4 - A* and Dijkstra \n\t5 - all at once"
+              "\n\t6 <number> - run <number> tests for A* and Dijkstra ")
+    elif sys.argv[2] != "6" and sys.argv[3] == sys.argv[4]:
+        print("Source must be different from target")
     else:
-        source = sys.argv[2]
-        target = sys.argv[3]
-
+        search_mode = sys.argv[2]
+        if search_mode == "6":
+            num_tests = int(sys.argv[3])
+        else:
+            source = sys.argv[3]
+            target = sys.argv[4]
         loaded_network = load_graph(sys.argv[1])
 
-        try:
-            source = loaded_network.getNode(source)
-            target = loaded_network.getNode(target)
-        except KeyError as error:
-            print("Entered bad city name: ", error.args[0], "\nPlease provide correct name")
+        if search_mode != "6":
+            try:
+                source = loaded_network.getNode(source)
+                target = loaded_network.getNode(target)
+            except KeyError as error:
+                print("Entered bad city name: ", error.args[0], "\nPlease provide correct name")
+                exit(-1)
 
         bf_time = 0
         astar_time = 0
@@ -157,9 +178,9 @@ if __name__ == "__main__":
         if search_mode in ("2", "4", "5"):
             startTime = time.perf_counter()
             result = a_star_search(loaded_network, source, target)
-            astar_path = reconstruct_path(result, source.id, target.id)
             endTime = time.perf_counter()
             astar_time = endTime-startTime
+            astar_path = reconstruct_path(result, source.id, target.id)
             print("A* algorithm:\n", path_distance(loaded_network, astar_path), "\n", nice_path(astar_path), "\nTime:",
                   astar_time, " sec")
 
@@ -167,9 +188,9 @@ if __name__ == "__main__":
             dijkstra = True
             startTime = time.perf_counter()
             result = a_star_search(loaded_network, source, target)
-            dijkstra_path = reconstruct_path(result, source.id, target.id)
             endTime = time.perf_counter()
             dijkstra_time = endTime-startTime
+            dijkstra_path = reconstruct_path(result, source.id, target.id)
             print("Dijkstra algorithm:\n", path_distance(loaded_network, dijkstra_path), "\n", nice_path(dijkstra_path), "\nTime:",
                   dijkstra_time, " sec")
 
@@ -180,3 +201,22 @@ if __name__ == "__main__":
 
         if search_mode is "5":
             print("A* to brute force ratio is", astar_time / bf_time)
+
+        if search_mode is "6":
+            test_data = generate_test_data(loaded_network, num_tests)
+
+            startTime = time.perf_counter()
+            for i in range(num_tests):
+                result = a_star_search(loaded_network, test_data[i][0], test_data[i][1])
+            endTime = time.perf_counter()
+            astar_time = endTime-startTime
+
+            startTime = time.perf_counter()
+            dijkstra = True
+            for i in range(num_tests):
+                result = a_star_search(loaded_network, test_data[i][0], test_data[i][1])
+            endTime = time.perf_counter()
+            dijkstra_time = endTime - startTime
+
+            print("Tested", num_tests, "times with random sources and destinations:\n", "A* time:", astar_time,
+                  "s\n Dijkstra time:", dijkstra_time, "s\n\n A* to Dijkstra ratio:", astar_time/dijkstra_time)
