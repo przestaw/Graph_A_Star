@@ -1,13 +1,15 @@
+from Graph import *
+from Queue import *
 import xml.etree.cElementTree as ElementTree
 import sys
 import time
 from random import randint
-
 sys.path.append('..')
 import distances
 from copy import copy
 from Queue import PriorityQueue
 from Graph import *
+
 
 
 def load_graph(input_file):
@@ -30,6 +32,7 @@ def load_graph(input_file):
         return my_network
     except FileNotFoundError:
         print("Input file not found")
+        return MyNetwork
 
 
 def heuristic(curr, goal):
@@ -54,11 +57,13 @@ def a_star_search(network, start, goal):
     came_from = {start.id: None}
     cost_so_far = {start.id: 0}
 
+    startTime = time.perf_counter()
+
     while not frontier.empty():
         current = frontier.get()
 
         if current == goal:
-            return came_from
+            break;
 
         for i in network.neighbors(current.id):
             next_node = network.getNode(i.id)
@@ -69,7 +74,8 @@ def a_star_search(network, start, goal):
                 frontier.put(next_node, priority)
                 came_from[next_node.id] = current.id
 
-    return {}
+    endTime = time.perf_counter()
+    return came_from, cost_so_far[goal.id], endTime - startTime
 
 
 def brute_force_util(network, start, goal, visited, path, best_path):

@@ -44,6 +44,10 @@ class Network:
 
     def neighbors(self, node):
         return self.Nodes[node].adjacent
+      
+    def empty(self):
+        return len(self.Nodes) == 0
+
 
 
 class Path:
