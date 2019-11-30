@@ -31,6 +31,8 @@ def load_graph(input_file):
 
 
 def heuristic(curr, goal):
+    if dijkstra:
+        return 0
     return distances.haversine((curr.y, curr.x), (goal.y, goal.x))
 
 
@@ -125,7 +127,7 @@ if __name__ == "__main__":
         search_mode = sys.argv[4]
     if len(sys.argv) < 4:
         print("Provide all arguments : <input file> <source> <target> <mode>(optional)\nModes:\n\t"
-              "1 - brute force\n\t2 - A* (default)\n\t3 - both")
+              "1 - brute force\n\t2 - A* (default)\n\t3 - Dijkstra\n\t4 - A* and Dijkstra \n\t5 - all at once")
     elif sys.argv[2] == sys.argv[3]:
         print("Source must be diffrent from target")
     else:
@@ -142,15 +144,17 @@ if __name__ == "__main__":
 
         bf_time = 0
         astar_time = 0
+        dijkstra_time = 0
+        dijkstra = False
 
-        if search_mode in ("1", "3"):
+        if search_mode in ("1", "5"):
             startTime = time.perf_counter()
             bf_path = brute_force(loaded_network, source, target)
             endTime = time.perf_counter()
             bf_time = endTime-startTime
             print("Brute force algorithm:\n", bf_path, "\nTime:", bf_time, " sec\n")
 
-        if search_mode in ("2", "3"):
+        if search_mode in ("2", "4", "5"):
             startTime = time.perf_counter()
             result = a_star_search(loaded_network, source, target)
             astar_path = reconstruct_path(result, source.id, target.id)
@@ -159,5 +163,20 @@ if __name__ == "__main__":
             print("A* algorithm:\n", path_distance(loaded_network, astar_path), "\n", nice_path(astar_path), "\nTime:",
                   astar_time, " sec")
 
-        if search_mode is "3":
-            print("\nA* to brute force ratio is", astar_time/bf_time)
+        if search_mode in ("3", "4", "5"):
+            dijkstra = True
+            startTime = time.perf_counter()
+            result = a_star_search(loaded_network, source, target)
+            dijkstra_path = reconstruct_path(result, source.id, target.id)
+            endTime = time.perf_counter()
+            dijkstra_time = endTime-startTime
+            print("Dijkstra algorithm:\n", path_distance(loaded_network, dijkstra_path), "\n", nice_path(dijkstra_path), "\nTime:",
+                  dijkstra_time, " sec")
+
+        print()
+
+        if search_mode in ("4", "5"):
+            print("A* to Dijkstra ratio is", astar_time / dijkstra_time)
+
+        if search_mode is "5":
+            print("A* to brute force ratio is", astar_time / bf_time)
