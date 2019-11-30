@@ -1,0 +1,95 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+\usepackage[T1]{fontenc} %font encoding ? --> need to clarify that
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+\geometry{margin=1in} % for example, change the margins to 2 inches all round
+
+\usepackage{graphicx} % support the \includegraphics command and options
+\usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{PSZT - przeszukiwanie}
+\author{Stawczyk Przemysław 293153, Piotr Zmyślony}
+\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+\section{Opis Zagadnienia}
+\subsection{Treść zadania}
+\paragraph{}
+Zaimplementować i przetestować algorytm \textsl{A*} dla zadania znalezienia ścieżki o najmniejszej wadze od punktu A do B. Wejściem aplikacji jest plik z listą krawędzi grafu (dla każdej krawędzi zdefiniowany jest punkt początkowy, końcowy I waga krawędzi). Wyjściem aplikacji jest najkrótsza ścieżka od punktu A do punktu B. Porównać działanie algorytmu \textsl{A*}  z \textsl{brutalnym} przeszukiwaniem grafu. Zastosowanie dodatkowego algorytmu będzie dodatkowym atutem przy ocenie projektu.
+\subsection{Narzędzia}
+Skrypty oraz algorytm zostały zaimplementowane w Pythonie 3. \\
+Wykorzystano biblioteki: \textsl{xml, math, time, json, requests, heapq }
+\subsection{Realizacja}
+Po konsultacji wybrane dane wejściowe to grafy  \textsl{Polska} oraz  \textsl{Germany50} ze strony sndlib.zib.de. Dane przedstawione w formie xml zostają przeprocesowane na plik  \textsl{xml} sformatowany w nieco inny sposób: wierzchołki (miasta) kodowane identycznie, krawędzie nie zawierają id, pojemności i kosztu, a odległość pomiędzy miastami, pominięte zostają również  \textsl{zapotrzebowania} pomiędzy poszczególnymi miastami. 
+Dane o odległości pobierane są z wykorzystaniem API webowego, w przypadku błędu w API odległość wyliczana jest metodą haversine która słóży również jako heurystyka dla algorytmu A*
+\subsection{Heurystyka dla A*}
+Heurystyka używana przez algorytm \textsl{A*}  musi pozwalać na oszacowanie prawdopodobieństwa wyniku pozostałej części procesu analizy składniowej, przy ustalonym już, uprzednio przeanalizowanym fragmencie. Musi być problemem prostszym niż problem ogólny \textsl{[nie może być to np rozwiązanie podproblemu algorytmem wymagajacym czasowo w stosunku do pierwotnego]}. Wynik działania funkcji powinien stanowić ograniczenie dolne kosztu dotarcia do celu \textsl{[nie da się tam dotrzeć szybciej, ale może być tak, że da się wolniej]}. W szczególnym przypadku, gdy heurystyka zwraca wartość 0 algorytm sprowadza się do algorytmu Dijkstry.\\
+Wymagania spełnia formuła haversine zastosowana w naszej implementacji tego algorytmu.
+\paragraph{Haversine}
+
+\section{Implementacja}
+\subsection{Program}
+Skrypt zawierający algorytmy przyjmuje 4 argumenty : \\ 
+\textsl{<graf> <początek> <cel> <tryb>}\\
+przy czym tryb jest opcjonalny i może obejmować:
+\begin{enumerate}
+\item
+alg. brutalny
+\item
+A* \textsl{domyślny}
+\item
+Dijkstra
+\item
+A* oraz Dijkstra
+\item
+Wszystkie 3 algorytmy
+\end{enumerate}
+A jego wynikiem jest podana ścieżka, koszt ścieżki oraz czas działania. Czas działania jest mierzony tylko w momencie działania algorytmu. Funkcja heurystyczna korzysta z formuły haversine obliczającą odległość w linii prostej po powierzchni sfery pomiędzy miastami. Funkcja ta spełnia wymagania heurystyki w algorytmie A* gdyż stanowi dolne ograniczenie odległości pomiędzy miastami \textsl{[nie da się dotrzeć szybciej niż w linii prostej]}
+\subsection{Testy działania}
+\begin{table}[h!]
+\centering
+\begin{tabular}{ ||p{3cm}||p{5cm}|p{5cm}||  }
+\hline
+\multicolumn{3}{|c|}{Uśrednione wyniki} \\
+\hline
+Algorytm & średni czas dla grafu Polska & średni czas dla grafu Germany50 \\
+\hline
+Brutalny & 0 &0 \\
+Dijkstra & 0 &0 \\
+A* & 0 &0 \\
+\hline
+\end{tabular}
+\end{table}
+\subsection{Analiza wyników}
+Algorytm Dijkstry oraz \textsl{A*} są zdecydowanie szybsze od podejścia brutalnego. Dodatkowo dzięki zastosowaniu algorytmu heurystycznego algorytm \textsl{A*} sprawdza jedynie potencjalnie najlepsze ścieżki co ogranicza \textsl{rozprzestrzenianie} się algorytmu i zdecydowanie przyspiesza jego pracę dla odpowiednio dużych grafów. Jako, że funkcja haversine jest umiarkowanie skomplikowaną formułą to dla mapy polski z 12 miastami i 18 krawędziami daje gorsze rezultaty niż sprawdzenie wszystkich ścieżek o długości mniejszej od optymalnej, ale już dla bardziej realistycznego zastosowania w grafie niemiec o 50 wierzchołkach znajduje dłuższe trasy szybciej.
+
+
+\end{document}
