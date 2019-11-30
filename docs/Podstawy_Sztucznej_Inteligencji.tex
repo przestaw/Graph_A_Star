@@ -33,7 +33,7 @@
 %%% The "real" document content comes below...
 
 \title{PSZT - przeszukiwanie}
-\author{Stawczyk Przemysław 293153, Piotr Zmyślony}
+\author{Stawczyk Przemysław 293153, Piotr Zmyślony 268833}
 \date{} % Activate to display a given date or no date (if empty),
          % otherwise the current date is printed 
 
@@ -48,48 +48,55 @@ Zaimplementować i przetestować algorytm \textsl{A*} dla zadania znalezienia ś
 Skrypty oraz algorytm zostały zaimplementowane w Pythonie 3. \\
 Wykorzystano biblioteki: \textsl{xml, math, time, json, requests, heapq }
 \subsection{Realizacja}
-Po konsultacji wybrane dane wejściowe to grafy  \textsl{Polska} oraz  \textsl{Germany50} ze strony sndlib.zib.de. Dane przedstawione w formie xml zostają przeprocesowane na plik  \textsl{xml} sformatowany w nieco inny sposób: wierzchołki (miasta) kodowane identycznie, krawędzie nie zawierają id, pojemności i kosztu, a odległość pomiędzy miastami, pominięte zostają również  \textsl{zapotrzebowania} pomiędzy poszczególnymi miastami. 
-Dane o odległości pobierane są z wykorzystaniem API webowego, w przypadku błędu w API odległość wyliczana jest metodą haversine która słóży również jako heurystyka dla algorytmu A*
+Po konsultacji wybrane dane wejściowe to grafy  \textsl{Polska} oraz  \textsl{Germany50} ze strony sndlib.zib.de. Dane przedstawione w formacie XML zostają przeprocesowane na plik XML, sformatowany w nieco inny sposób: wierzchołki (miasta) kodowane identycznie, krawędzie nie zawierają id, pojemności i kosztu, a odległość pomiędzy miastami, pominięte zostają również  \textsl{zapotrzebowania} pomiędzy poszczególnymi miastami. 
+Dane o odległości drogowej pobierane są z wykorzystaniem API serwisu \textsl{here.com}, a w przypadku błędu w odpowiedzi API, odległość wyliczana jest formułą haversine, która słóży również jako heurystyka dla algorytmu \textsl{A*}.
 \subsection{Heurystyka dla A*}
-Heurystyka używana przez algorytm \textsl{A*}  musi pozwalać na oszacowanie prawdopodobieństwa wyniku pozostałej części procesu analizy składniowej, przy ustalonym już, uprzednio przeanalizowanym fragmencie. Musi być problemem prostszym niż problem ogólny \textsl{[nie może być to np rozwiązanie podproblemu algorytmem wymagajacym czasowo w stosunku do pierwotnego]}. Wynik działania funkcji powinien stanowić ograniczenie dolne kosztu dotarcia do celu \textsl{[nie da się tam dotrzeć szybciej, ale może być tak, że da się wolniej]}. W szczególnym przypadku, gdy heurystyka zwraca wartość 0 algorytm sprowadza się do algorytmu Dijkstry.\\
+Heurystyka używana przez algorytm \textsl{A*}  musi pozwalać na oszacowanie prawdopodobieństwa wyniku pozostałej części procesu analizy składniowej, przy ustalonym już, uprzednio przeanalizowanym fragmencie. Musi być problemem prostszym niż problem ogólny \textsl{[nie może być to np. rozwiązanie podproblemu algorytmem wymagajacym czasowo w stosunku do pierwotnego]}. Wynik działania funkcji powinien stanowić ograniczenie dolne kosztu dotarcia do celu \textsl{[nie da się tam dotrzeć szybciej, ale może być tak, że da się wolniej]}. W szczególnym przypadku, gdy heurystyka zwraca wartość 0 algorytm sprowadza się do algorytmu Dijkstry.\\
 Wymagania spełnia formuła haversine zastosowana w naszej implementacji tego algorytmu.
-\paragraph{Haversine}
-
+\paragraph{Formuła haversine}
+Formuła ta pozwala na otrzymanie przybliżonej długości łuku, który łączy dwa punktu na kuli, używając jako dane wejściowe szerokości i długości geograficznych obu punktów.
+\begin{center}
+\[ d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\varphi_2 - \varphi_1}{2}\right) + \cos(\varphi_1) \cos(\varphi_2)\sin^2\left(\frac{\lambda_2 - \lambda_1}{2}\right)}\right) \]
+\end{center}
+W powyższym wzorze \textsl{r} to promień Ziemi, $\varphi$ i $\lambda$ to odpowiednio szerokości i długości geograficzne.
 \section{Implementacja}
 \subsection{Program}
 Skrypt zawierający algorytmy przyjmuje 4 argumenty : \\ 
-\textsl{<graf> <początek> <cel> <tryb>}\\
-przy czym tryb jest opcjonalny i może obejmować:
+\textsl{<graf> <tryb> <początek> <cel>}\\
+przy czym tryby pracy programu są następujące:
 \begin{enumerate}
 \item
-alg. brutalny
+alg. brutalny (przeszukiwanie wszystkich możliwych ścieżek)
 \item
-A* \textsl{domyślny}
+algorytm A* 
 \item
-Dijkstra
+algorytm Dijkstry
 \item
-A* oraz Dijkstra
+A* oraz algorytm Dijkstry
 \item
 Wszystkie 3 algorytmy
+\item
+Tryb testowy, wymaga jedynie podania argumentów w postaci \textsl{<graf> 6 <ilość prób testowych>}. Porówuje wydajności A* oraz algorytmu Dijkstry na podstawie określonej ilości danych testowych (generowanych automatycznie).
 \end{enumerate}
-A jego wynikiem jest podana ścieżka, koszt ścieżki oraz czas działania. Czas działania jest mierzony tylko w momencie działania algorytmu. Funkcja heurystyczna korzysta z formuły haversine obliczającą odległość w linii prostej po powierzchni sfery pomiędzy miastami. Funkcja ta spełnia wymagania heurystyki w algorytmie A* gdyż stanowi dolne ograniczenie odległości pomiędzy miastami \textsl{[nie da się dotrzeć szybciej niż w linii prostej]}
+Wynikiem działania dla wszystkich opcji są ścieżki, jej koszt (odległość) oraz czas działania. Czas działania jest mierzony tylko w momencie działania algorytmu. Funkcja heurystyczna korzysta z formuły haversine obliczającą odległość w linii prostej po powierzchni sfery pomiędzy miastami. Funkcja ta spełnia wymagania heurystyki w algorytmie A* gdyż stanowi dolne ograniczenie odległości pomiędzy miastami \textsl{[nie da się dotrzeć szybciej niż w linii prostej]}
 \subsection{Testy działania}
+Poniższa tabelka przedstawia czasy działania algorytmu dla jednej procesu wyszukiwania jednej ścieżki, uśrednione na podstawie 10000 powtórzeń dla A* i algorytmu Dijkstry.
 \begin{table}[h!]
 \centering
 \begin{tabular}{ ||p{3cm}||p{5cm}|p{5cm}||  }
 \hline
 \multicolumn{3}{|c|}{Uśrednione wyniki} \\
 \hline
-Algorytm & średni czas dla grafu Polska & średni czas dla grafu Germany50 \\
+Algorytm & średni czas dla grafu Polska & średni czas dla Germany50 \\
 \hline
-Brutalny & 0 &0 \\
-Dijkstra & 0 &0 \\
-A* & 0 &0 \\
+Brutalny &375 $\mu s$ &>15 minut \\
+Dijkstra &19 $\mu s$ &87 $\mu s$ \\
+A* &25 $\mu s$ &41 $\mu s$ \\
 \hline
 \end{tabular}
 \end{table}
 \subsection{Analiza wyników}
-Algorytm Dijkstry oraz \textsl{A*} są zdecydowanie szybsze od podejścia brutalnego. Dodatkowo dzięki zastosowaniu algorytmu heurystycznego algorytm \textsl{A*} sprawdza jedynie potencjalnie najlepsze ścieżki co ogranicza \textsl{rozprzestrzenianie} się algorytmu i zdecydowanie przyspiesza jego pracę dla odpowiednio dużych grafów. Jako, że funkcja haversine jest umiarkowanie skomplikowaną formułą to dla mapy polski z 12 miastami i 18 krawędziami daje gorsze rezultaty niż sprawdzenie wszystkich ścieżek o długości mniejszej od optymalnej, ale już dla bardziej realistycznego zastosowania w grafie niemiec o 50 wierzchołkach znajduje dłuższe trasy szybciej.
+Algorytm Dijkstry oraz \textsl{A*} są zdecydowanie szybsze od podejścia brutalnego, którego użycie dla grafów o większej ilości krawędzi i wierzchołków może prowadzić do złożoności \textsl{O(n!)}. Dodatkowo dzięki zastosowaniu algorytmu heurystycznego algorytm \textsl{A*} sprawdza jedynie potencjalnie najlepsze ścieżki co ogranicza \textsl{rozprzestrzenianie} się algorytmu i zdecydowanie przyspiesza jego pracę dla odpowiednio dużych grafów. Jako, że funkcja haversine jest umiarkowanie skomplikowaną formułą to dla mapy Polski z 12 miastami i 18 krawędziami wzrost wydajności jest znikomy, ale już dla bardziej realistycznego zastosowania, w grafie dla mapy Niemiec, o 50 wierzchołkach znajduje dłuższe trasy szybciej.
 
 
 \end{document}
